@@ -22,10 +22,15 @@ df.drop(['pdbcode:chain:resnum:mutation'],axis=1, inplace=True) #removes columns
 df.columns = df.columns.str.replace(' ', '_') #Removes gaps in column names
 df.replace(' ', '_', regex=True, inplace=True) #Replace all blank spaces with underscore (none were present)
 
+#**Encoding the categorical data for dataframe y**
 X = df.drop('dataset', axis=1).copy() #X is dataframe with data used to train and predict if SNP or PD 
 y = pd.get_dummies(df, columns=['dataset'], prefix=['Mutation']) #y is dataframe with mutations in non-object format for testing
 
-#**Encoding the categorical data**
+#**Split data into training and test**
+y_count = y.drop(['Binding', 'SProtFT0', 'SProtFT1', 'SProtFT2', 'SProtFT3', 'SProtFT4', 'SProtFT5', 'SProtFT6', 'SProtFT7', 'SProtFT8', 'SProtFT9', 'SProtFT10', 'SProtFT11', 'SProtFT12', 'Interface', 'Relaccess', 'Impact', 'HBonds', 'SPhobic', 'CPhilic', 'BCharge', 'SSGeom', 'Voids', 'MLargest1', 'MLargest2', 'MLargest3', 'MLargest4', 'MLargest5', 'MLargest6', 'MLargest7', 'MLargest8', 'MLargest9', 'MLargest10', 'NLargest1', 'NLargest2', 'NLargest3', 'NLargest4', 'NLargest5', 'NLargest6', 'NLargest7', 'NLargest8', 'NLargest9', 'NLargest10', 'Clash', 'Glycine', 'Proline', 'CisPro'],axis=1)
+print(y_count.count()) #Shows data is already balanced
+
+
 
 
 
