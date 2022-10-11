@@ -1,4 +1,5 @@
 #Example 1 is balanced data set, no hyperparameters as splits data into training and testing sets
+#Goal is to predict if protein is SNP or PD
 
 #**import XGBoost and other ML modules**
 import pandas as pd #import data for One-Hot Encoding
@@ -17,10 +18,14 @@ from sklearn.metrics import ConfusionMatrixDisplay #draws the confusion matrix
 #**Create, clean and convert the train.csv dataset to a dataframe**
 pd.set_option('display.max_columns', None) #Max columns
 df = pd.read_csv('demo.csv') #Pandas creates data frame from the .csv mutation data
-df.drop(['pdbcode:chain:resnum:mutation', 'dataset'],axis=1, inplace=True) #removes columns undeeded in training
+df.drop(['pdbcode:chain:resnum:mutation'],axis=1, inplace=True) #removes columns undeeded in training
 df.columns = df.columns.str.replace(' ', '_') #Removes gaps in column names
 df.replace(' ', '_', regex=True, inplace=True) #Replace all blank spaces with underscore (none were present)
-print(df)
+
+X = df.drop('dataset', axis=1).copy() #X is dataframe with data used to train and predict if SNP or PD 
+y = pd.get_dummies(df, columns=['dataset'], prefix=['Mutation']) #y is dataframe with mutations in non-object format for testing
 
 #**Encoding the categorical data**
-X["datatype"].astype("category")
+
+
+
