@@ -16,7 +16,11 @@ from sklearn.metrics import ConfusionMatrixDisplay #draws the confusion matrix
 
 #**Create, clean and convert the train.csv dataset to a dataframe**
 pd.set_option('display.max_columns', None) #Max columns
-df = pd.read_csv('train.csv') #Pandas creates data frame from the .csv mutation data
+df = pd.read_csv('demo.csv') #Pandas creates data frame from the .csv mutation data
+df.drop(['pdbcode:chain:resnum:mutation', 'dataset'],axis=1, inplace=True) #removes columns undeeded in training
+df.columns = df.columns.str.replace(' ', '_') #Removes gaps in column names
+df.replace(' ', '_', regex=True, inplace=True) #Replace all blank spaces with underscore (none were present)
 print(df)
-#df.drop(['Churn Label', 'Churn Score', 'CLTV', 'Churn Reason', 'Count', 'Country', 'State', 'Lat Long', 'CustomerID'],
-#axis=1, inplace=True) #"Drop" removes the columns listed above as not needed in training. Inplace "True" modifies the data fram itself
+
+#**Encoding the categorical data**
+X["datatype"].astype("category")
