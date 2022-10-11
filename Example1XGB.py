@@ -24,14 +24,15 @@ df.replace(' ', '_', regex=True, inplace=True) #Replace all blank spaces with un
 
 #**Encoding the categorical data for dataframe y**
 X = df.drop('dataset', axis=1).copy() #X is dataframe with data used to train and predict if SNP or PD 
-y = pd.get_dummies(df, columns=['dataset'], prefix=['Mutation']) #y is dataframe with mutations in non-object format for testing
+y_encoded = pd.get_dummies(df, columns=['dataset'], prefix=['Mutation']) #y is dataframe with mutations in non-object format for testing
+y = y_encoded[['Mutation_pd','Mutation_snp']].copy()
 
 #**Split data into training and test**
-y_count = y.drop(['Binding', 'SProtFT0', 'SProtFT1', 'SProtFT2', 'SProtFT3', 'SProtFT4', 'SProtFT5', 'SProtFT6', 'SProtFT7', 'SProtFT8', 'SProtFT9', 'SProtFT10', 'SProtFT11', 'SProtFT12', 'Interface', 'Relaccess', 'Impact', 'HBonds', 'SPhobic', 'CPhilic', 'BCharge', 'SSGeom', 'Voids', 'MLargest1', 'MLargest2', 'MLargest3', 'MLargest4', 'MLargest5', 'MLargest6', 'MLargest7', 'MLargest8', 'MLargest9', 'MLargest10', 'NLargest1', 'NLargest2', 'NLargest3', 'NLargest4', 'NLargest5', 'NLargest6', 'NLargest7', 'NLargest8', 'NLargest9', 'NLargest10', 'Clash', 'Glycine', 'Proline', 'CisPro'],axis=1)
-print(y_count.count()) #Shows data is already balanced
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, stratify=y) #Splits data into training and testing (even tho already split)
+#y_count = y.drop(['Binding', 'SProtFT0', 'SProtFT1', 'SProtFT2', 'SProtFT3', 'SProtFT4', 'SProtFT5', 'SProtFT6', 'SProtFT7', 'SProtFT8', 'SProtFT9', 'SProtFT10', 'SProtFT11', 'SProtFT12', 'Interface', 'Relaccess', 'Impact', 'HBonds', 'SPhobic', 'CPhilic', 'BCharge', 'SSGeom', 'Voids', 'MLargest1', 'MLargest2', 'MLargest3', 'MLargest4', 'MLargest5', 'MLargest6', 'MLargest7', 'MLargest8', 'MLargest9', 'MLargest10', 'NLargest1', 'NLargest2', 'NLargest3', 'NLargest4', 'NLargest5', 'NLargest6', 'NLargest7', 'NLargest8', 'NLargest9', 'NLargest10', 'Clash', 'Glycine', 'Proline', 'CisPro'],axis=1)
+#print(y_count.count()) #Shows data is already balanced
+#X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, stratify=y) #Splits data into training and testing (even tho already split)
 
-
+print(y)
 
 
 
