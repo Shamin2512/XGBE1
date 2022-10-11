@@ -37,18 +37,21 @@ print(X)
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, stratify=y) #Splits data into training and testing (even tho already split)
 
 #**Build XGB training/ classification model**
-clf_xgb = xgb.XGBClassifier(objective='binary:logistic', seed=42)
-clf_xgb.fit(
+clf = xgb.XGBClassifier(objective='binary:logistic', seed=42)
+clf.fit(
     X_train,
     y_train,
-    early_stopping_rounds =10,
+    early_stopping_rounds=10,
     verbose=True,
     eval_metric='rmse',
-    eval_set=[(X_test, y_test)])
-#Stop building trees 10 rounds after prediction does not improve. Area Under Curve evalutation. Test set used to decide how many trees to build
-print(clf_xgb)
+    eval_set=[(X_test, y_test)]) #Rmse metric, early stopping rounds incompatible with fit()
+print(clf)
 
 
+#**Plot confusion matrix using the true and predicted values**
+predictions = clf.predict(X_test)
+print(confusion_matrix(
+    y_test.values.argmax(axis=1), predictions.argmax(axis=1)))
 
 
 
