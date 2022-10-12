@@ -33,11 +33,7 @@ y = y_encoded[['Mutation_pd','Mutation_snp']].copy() #y is dataframe with only m
 #y.to_csv('ytest.csv')
 
 #**Split data into training and test**
-
-#y_count = y.drop(['Binding', 'SProtFT0', 'SProtFT1', 'SProtFT2', 'SProtFT3', 'SProtFT4', 'SProtFT5', 'SProtFT6', 'SProtFT7', 'SProtFT8', 'SProtFT9', 'SProtFT10', 'SProtFT11', 'SProtFT12', 'Interface', 'Relaccess', 'Impact', 'HBonds', 'SPhobic', 'CPhilic', 'BCharge', 'SSGeom', 'Voids', 'MLargest1', 'MLargest2', 'MLargest3', 'MLargest4', 'MLargest5', 'MLargest6', 'MLargest7', 'MLargest8', 'MLargest9', 'MLargest10', 'NLargest1', 'NLargest2', 'NLargest3', 'NLargest4', 'NLargest5', 'NLargest6', 'NLargest7', 'NLargest8', 'NLargest9', 'NLargest10', 'Clash', 'Glycine', 'Proline', 'CisPro'],axis=1)
-#print(y_count.count()) #Shows data is already balanced
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.81694, random_state=42, stratify=y) #Splits data into training and testing (even tho already split)
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.81694, random_state=42, stratify=y) #Splits data into training and testing, specifying the training set should be 50,000 rows
 
 #**Build XGB training/ classification model**
 clf = xgb.XGBClassifier(objective='binary:logistic', seed=42)
@@ -52,9 +48,10 @@ print(clf)
 
 
 #**Plot confusion matrix using the true and predicted values**
-y_pred = clf.predict(X_test)
-ConfusionMatrixDisplay.from_predictions(y_test.values.argmax(axis=1), y_pred.argmax(axis=1), values_format='d', display_labels=["PD", "SNP"])
-print(confusion_matrix(y_test.values.argmax(axis=1), y_pred.argmax(axis=1)))
+y_pred = clf.predict(X_test).argmax(axis=1) #converts the prediction array to integer list
+y_test = y_test.values.argmax(axis=1) #converts the encoded arrray to integer list
+ConfusionMatrixDisplay.from_predictions(y_test, y_pred, values_format='d', display_labels=["PD", "SNP"])
+print(confusion_matrix(y_test, y_pred))
 
 
 
