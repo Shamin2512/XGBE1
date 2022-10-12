@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt #graphing/plotting stuff
 from xgboost import XGBClassifier #SK learn API for XGB model building
 from xgboost import XGBRegressor #SK learn API for XGB regression
 from sklearn.metrics import mean_squared_error
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split #Splits data frame into the training set and testing set
 from sklearn.metrics import balanced_accuracy_score, roc_auc_score, make_scorer #Scoring metrics 
 from sklearn.model_selection import GridSearchCV #Cross validation to improve hyperparameters
@@ -52,6 +53,8 @@ y_pred = clf.predict(X_test).argmax(axis=1) #converts the prediction array to in
 y_test = y_test.values.argmax(axis=1) #converts the encoded arrray to integer list
 ConfusionMatrixDisplay.from_predictions(y_test, y_pred, values_format='d', display_labels=["PD", "SNP"])
 print(confusion_matrix(y_test, y_pred))
+
+print('XGBoost model accuracy score: ', format(accuracy_score(y_test, y_pred)))
 
 
 
