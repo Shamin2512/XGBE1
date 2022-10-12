@@ -4,6 +4,7 @@
 #**import XGBoost and other ML modules**
 import pandas as pd #import data for One-Hot Encoding
 import numpy as np #calc the mean and SD
+from xgboost import cv #Cross validation 
 import xgboost as xgb #XGboost ML
 import matplotlib.pyplot as plt #graphing/plotting stuff
 from xgboost import XGBClassifier #SK learn API for XGB model building
@@ -41,7 +42,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.81694, ra
 
 #**Build XGB training/ classification model**
 params = {
-    'objective':'binary:logistic',
+    'objective':"binary:logistic",
     'max_depth': 4,
     'alpha': 10,
     'learning_rate': 1.0,
@@ -61,11 +62,35 @@ print(y_pred)
 print('XGBoost model accuracy score: ', format(accuracy_score(y_test, y_pred)))
 
 
+nparams = {
+    'objective':"binary:logistic",
+    'colsample_bytree': 0.3,
+    'learning_rate': 0.1,
+    'max_depth': 5,
+    'alpha' :10
+    }
+
+xgb_cv =cv(
+    dtrain=data_dmatrix,
+    params=nparams,
+    nfold=3,
+    num_boost_round=50,
+    early_stopping_rounds=10,
+    metrics='logloss',
+    as_pandas=True,
+    seed=42
+    )
+print(xgb_cv.head())
+xgb.plot_importance(clf)
+plt.figure(figsize = (8, 4))
+plt.show()
+
+
 #**Plot confusion matrix using the true and predicted values**
-#y_pred = clf.predict(X_test).argmax(axis=1) #converts the prediction array to integer list
-#y_test = y_test.values.argmax(axis=1) #converts the encoded arrray to integer list
-#ConfusionMatrixDisplay.from_predictions(y_test, y_pred, values_format='d', display_labels=["PD", "SNP"])
-#print(confusion_matrix(y_test, y_pred))
+y_pred = clf.predict(X_test).argmax(axis=1)
+y_test = y_test.values.argmax(axis=1) #converts the encoded arrray to integer list
+ConfusionMatrixDisplay.from_predictions(y_test, y_pred, values_format='d', display_labels=["PD", "SNP"])
+print(confusion_matrix(y_test, y_pred))
 
 
 
