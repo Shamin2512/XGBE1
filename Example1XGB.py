@@ -22,12 +22,15 @@ df.drop(['pdbcode:chain:resnum:mutation'],axis=1, inplace=True) #removes columns
 df.columns = df.columns.str.replace(' ', '_') #Removes gaps in column names
 df.replace(' ', '_', regex=True, inplace=True) #Replace all blank spaces with underscore (none were present)
 
-#**Encoding the categorical data for dataframe y**
-X = df.drop('dataset', axis=1).copy() #X is dataframe with data used to train and predict if SNP or PD 
-y_encoded = pd.get_dummies(df, columns=['dataset'], prefix=['Mutation']) #y is dataframe with mutations in non-object format for testing
-y = y_encoded[['Mutation_pd','Mutation_snp']].copy()
-print(y)
-print(X)
+#**One-Hot Encoding the categorical data for dataframe y**
+X_drop = df.drop('dataset', axis=1).copy() #Dataframe with data used to train and predict if SNP or PD
+X = X_drop.head(5000) #Takes first 50000 rows as datapoints for training since data is random order
+X.to_csv('xtrain.csv') #Output .csv
+
+y_tail = df.tail(11205)
+y_encoded = pd.get_dummies(y_tail, columns=['dataset'], prefix=['Mutation']) #Dataframe with mutations in numerical categorical format for testing
+y = y_encoded[['Mutation_pd','Mutation_snp']].copy() #y is dataframe with only mutation columns for testing against
+y.to_csv('ytest.csv')
 
 #**Split data into training and test**
 
@@ -52,7 +55,6 @@ print(clf)
 y_pred = clf.predict(X_test)
 ConfusionMatrixDisplay.from_predictions(y_test.values.argmax(axis=1), y_pred.argmax(axis=1), values_format='d', display_labels=["PD", "SNP"])
 print(confusion_matrix(y_test.values.argmax(axis=1), y_pred.argmax(axis=1)))
-plt.show()
 
 
 
