@@ -49,10 +49,10 @@ print(clf)
 
 
 #**Plot confusion matrix using the true and predicted values**
-predictions = clf.predict(X_test)
-print(confusion_matrix(
-    y_test.values.argmax(axis=1), predictions.argmax(axis=1)))
-
+y_pred = clf.predict(X_test)
+ConfusionMatrixDisplay.from_predictions(y_test.values.argmax(axis=1), y_pred.argmax(axis=1), values_format='d', display_labels=["PD", "SNP"])
+print(confusion_matrix(y_test.values.argmax(axis=1), y_pred.argmax(axis=1)))
+plt.show()
 
 
 
