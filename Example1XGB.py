@@ -58,7 +58,6 @@ clf.fit(
 print(clf)
 
 y_pred = clf.predict(X_test)
-print(y_pred)
 print('XGBoost model accuracy score: ', format(accuracy_score(y_test, y_pred)))
 
 
@@ -76,15 +75,12 @@ xgb_cv =cv(
     nfold=3,
     num_boost_round=50,
     early_stopping_rounds=10,
-    metrics='logloss',
+    metrics='rmse',
     as_pandas=True,
     seed=42
     )
-print(xgb_cv.head())
-xgb.plot_importance(clf)
-plt.figure(figsize = (8, 4))
-plt.show()
 
+xgb.plot_importance(clf) #Feature importance
 
 #**Plot confusion matrix using the true and predicted values**
 y_pred = clf.predict(X_test).argmax(axis=1)
