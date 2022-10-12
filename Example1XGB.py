@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt #graphing/plotting stuff
 from xgboost import XGBClassifier #SK learn API for XGB model building
 from xgboost import XGBRegressor #SK learn API for XGB regression
 from sklearn.metrics import mean_squared_error
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split #Splits data frame into the training set and testing set
 from sklearn.metrics import balanced_accuracy_score, roc_auc_score, make_scorer #Scoring metrics 
 from sklearn.model_selection import GridSearchCV #Cross validation to improve hyperparameters
@@ -37,16 +38,18 @@ clf.fit(
     early_stopping_rounds=10,
     verbose=True,
     eval_metric='aucpr',
-    eval_set=[(X_test, y_test)]) #Rmse metric, early stopping rounds incompatible with fit()
+    eval_set=[(X_test, y_test)]) #AUCPR metric, early stopping rounds incompatible with fit()
 print(clf)
 
 
 #**Plot confusion matrix using the true and predicted values**
 y_pred = clf.predict(X_test)
-ConfusionMatrixDisplay.from_predictions(y_test.values.argmax(axis=1), y_pred.argmax(axis=1), values_format='d', display_labels=["PD", "SNP"])
-print(confusion_matrix(y_test.values.argmax(axis=1), y_pred.argmax(axis=1)))
-plt.show()
+ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
+print(confusion_matrix(y_test, y_pred))
 
+# evaluate predictions
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy: %.2f%%" % (accuracy * 100.0))
 
 
 
