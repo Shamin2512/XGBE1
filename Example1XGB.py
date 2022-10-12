@@ -23,21 +23,21 @@ df.columns = df.columns.str.replace(' ', '_') #Removes gaps in column names
 df.replace(' ', '_', regex=True, inplace=True) #Replace all blank spaces with underscore (none were present)
 
 #**One-Hot Encoding the categorical data for dataframe y**
-X_drop = df.drop('dataset', axis=1).copy() #Dataframe with data used to train and predict if SNP or PD
-X = X_drop.head(5000) #Takes first 50000 rows as datapoints for training since data is random order
-X.to_csv('xtrain.csv') #Output .csv
+X = df.drop('dataset', axis=1).copy() #Dataframe with data used to train and predict if SNP or PD
+#X = X_drop.head(50000) #Takes first 50000 rows as datapoints for training since data is random order
+#X.to_csv('xtrain.csv') #Output .csv
 
-y_tail = df.tail(11205)
-y_encoded = pd.get_dummies(y_tail, columns=['dataset'], prefix=['Mutation']) #Dataframe with mutations in numerical categorical format for testing
+#y_tail = df.tail(11205)
+y_encoded = pd.get_dummies(df, columns=['dataset'], prefix=['Mutation']) #Dataframe with mutations in numerical categorical format for testing
 y = y_encoded[['Mutation_pd','Mutation_snp']].copy() #y is dataframe with only mutation columns for testing against
-y.to_csv('ytest.csv')
+#y.to_csv('ytest.csv')
 
 #**Split data into training and test**
 
 #y_count = y.drop(['Binding', 'SProtFT0', 'SProtFT1', 'SProtFT2', 'SProtFT3', 'SProtFT4', 'SProtFT5', 'SProtFT6', 'SProtFT7', 'SProtFT8', 'SProtFT9', 'SProtFT10', 'SProtFT11', 'SProtFT12', 'Interface', 'Relaccess', 'Impact', 'HBonds', 'SPhobic', 'CPhilic', 'BCharge', 'SSGeom', 'Voids', 'MLargest1', 'MLargest2', 'MLargest3', 'MLargest4', 'MLargest5', 'MLargest6', 'MLargest7', 'MLargest8', 'MLargest9', 'MLargest10', 'NLargest1', 'NLargest2', 'NLargest3', 'NLargest4', 'NLargest5', 'NLargest6', 'NLargest7', 'NLargest8', 'NLargest9', 'NLargest10', 'Clash', 'Glycine', 'Proline', 'CisPro'],axis=1)
 #print(y_count.count()) #Shows data is already balanced
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42, stratify=y) #Splits data into training and testing (even tho already split)
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.81694, random_state=42, stratify=y) #Splits data into training and testing (even tho already split)
 
 #**Build XGB training/ classification model**
 clf = xgb.XGBClassifier(objective='binary:logistic', seed=42)
