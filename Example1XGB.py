@@ -8,6 +8,7 @@ import xgboost as xgb #XGboost ML
 import matplotlib.pyplot as plt #graphing/plotting stuff
 from xgboost import XGBClassifier #SK learn API for XGB model building
 from xgboost import XGBRegressor #SK learn API for XGB regression
+from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split #Splits data frame into the training set and testing set
 from sklearn.metrics import balanced_accuracy_score, roc_auc_score, make_scorer #Scoring metrics 
@@ -31,7 +32,7 @@ y = y_encoded[['Mutation_pd','Mutation_snp']].copy() #y is dataframe with only m
 
 
 #**Converting the pandas dataframe to a XGB Dmatrix**
-data_dmatrix = xgb.Dmatrix(data= X, label =y)
+data_dmatrix = xgb.DMatrix(data= X, label =y)
 
 
 #**Split data into training and test**
@@ -39,22 +40,32 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.81694, ra
 
 
 #**Build XGB training/ classification model**
-clf = xgb.XGBClassifier(objective='binary:logistic', seed=42)
+params = {
+    'objective':'binary:logistic',
+    'max_depth': 4,
+    'alpha': 10,
+    'learning_rate': 1.0,
+    'n_estimators': 100,
+    'seed': 42,
+    }
+
+clf = xgb.XGBClassifier(**params)
 clf.fit(
     X_train,
     y_train,
-    early_stopping_rounds=10,
-    verbose=True,
-    eval_metric='rmse',
-    eval_set=[(X_test, y_test)]) #Rmse metric, early stopping rounds incompatible with fit()
+    )
 print(clf)
+
+y_pred = clf.predict(X_test)
+print(y_pred)
+print('XGBoost model accuracy score: ', format(accuracy_score(y_test, y_pred)))
 
 
 #**Plot confusion matrix using the true and predicted values**
-y_pred = clf.predict(X_test).argmax(axis=1) #converts the prediction array to integer list
-y_test = y_test.values.argmax(axis=1) #converts the encoded arrray to integer list
-ConfusionMatrixDisplay.from_predictions(y_test, y_pred, values_format='d', display_labels=["PD", "SNP"])
-print(confusion_matrix(y_test, y_pred))
+#y_pred = clf.predict(X_test).argmax(axis=1) #converts the prediction array to integer list
+#y_test = y_test.values.argmax(axis=1) #converts the encoded arrray to integer list
+#ConfusionMatrixDisplay.from_predictions(y_test, y_pred, values_format='d', display_labels=["PD", "SNP"])
+#print(confusion_matrix(y_test, y_pred))
 
 
 
