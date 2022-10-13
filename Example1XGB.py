@@ -42,11 +42,15 @@ param = {
     'learning_rate': 0.1,
     'objective': 'binary:logistic'
     }
-param['eval_metric'] = ['auc']
+param['eval_metric'] = ['auc', 'aucpr', 'rmse']
 evallist = [(d_test, 'eval'), (d_train, 'train')]
 
-num_round=15
-training = xgb.train(param, d_train, num_round, evallist)
+num_round=100
+training = xgb.train(param, d_train, num_round, evallist, early_stopping_rounds=10)
+xgb.plot_importance(training)
+plt.show()
+
+
 
  
 
