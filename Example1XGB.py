@@ -38,6 +38,7 @@ d_test = xgb.DMatrix(X_test, y_test.values.argmax(axis=1), silent=False)
 
 param = {
     'booster': 'gbtree',
+    'colsample_bytree': 0.3,
     'max_depth': 2,
     'learning_rate': 0.1,
     'objective': 'binary:logistic'
@@ -45,10 +46,27 @@ param = {
 param['eval_metric'] = ['auc', 'aucpr', 'rmse']
 evallist = [(d_test, 'eval'), (d_train, 'train')]
 
-num_round=100
-training = xgb.train(param, d_train, num_round, evallist, early_stopping_rounds=10)
-xgb.plot_importance(training)
-plt.show()
+num_round = 50
+bst = xgb.train(param, d_train, num_round, evallist, early_stopping_rounds = 10)
+
+
+dmatrix_train = xgb.DMatrix(X, y)
+params = {
+    'objective': 'binary:hinge',
+    'colsample_bytree': 0.3,
+    'learning_rate': 0.1,
+    'max_depth': 5,
+}
+cross_val = xgb.cv(
+    params=params,
+    dtrain=dmatrix_data, 
+    nfold=3,
+    num_boost_round=50, 
+    early_stopping_rounds=10, 
+    metrics='error', 
+    as_pandas=True, 
+    seed=42)
+print(cross_val.head())
 
 
 
