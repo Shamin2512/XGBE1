@@ -16,6 +16,8 @@ from sklearn.model_selection import GridSearchCV #Cross validation to improve hy
 from sklearn.metrics import confusion_matrix #creates the confusion matrix - stats on how accurate the test set output is
 from sklearn.metrics import ConfusionMatrixDisplay #draws the confusion matrix
 
+xgb.set_config(verbosity=2)
+               
 #**Create, clean and convert the train.csv dataset to a dataframe**
 df = pd.read_csv('demo.csv') #Pandas creates data frame from the .csv mutation data
 df.drop(['pdbcode:chain:resnum:mutation'],axis=1, inplace=True) #removes columns unrequired columns, replacing the variable 
@@ -25,31 +27,34 @@ df.replace(' ', '_', regex=True, inplace=True) #Replace all blank spaces with un
 #**Encoding the categorical data for dataframe y**
 X = df.drop('dataset', axis=1).copy() #X is dataframe with data used to train and predict if SNP or PD 
 y_encoded = pd.get_dummies(df, columns=['dataset']) #y is df with mutations changing from object -> unint8 (integer)
-y = y_encoded['dataset_pd'].copy()
+y = y_encoded[['dataset_pd', 'dataset_snp']].copy()
+
+print(X.shape)
+print(y.shape)
+
+#**XGB Dmatrix training model**
+train = xgb.DMatrix(X.values, y.values)
+test = xgb.DMatrix(y.values)
+dmatrix = xgb.DMatrix(data = train, label = test, silent=True)
+
+param = {
+    'max_depth': 2,
+    'eta': 1,
+    'objective': 'binary:logistic',
+    }
+param['nthread'] = 4
+param['eval_metrics'] = ['aucp', 'rmse']
+
+evallist = [(test, 'eval'), (train, 'train')]
 
 #**Split data into training and test**
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.81694, random_state=42, stratify=y) #Splits data into training (81.694%) and testing (18.216%). 
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.81694, random_state=42, stratify=y) #Splits data into training (81.694%) and testing (18.216%).
+num_round=10
+training = xgb.train(param, dmatrix, num_round, evallist)
 
-#**Build XGB training/ classification model**
-clf = xgb.XGBClassifier(objective='binary:logistic', seed=42)
-clf.fit(
-    X_train,
-    y_train,
-    early_stopping_rounds=10,
-    verbose=True,
-    eval_metric='aucpr',
-    eval_set=[(X_test, y_test)]) #AUCPR metric, early stopping rounds incompatible with fit()
-print(clf)
+ 
 
 
-#**Plot confusion matrix using the true and predicted values**
-y_pred = clf.predict(X_test)
-ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
-print(confusion_matrix(y_test, y_pred))
-
-# evaluate predictions
-accuracy = accuracy_score(y_test, y_pred)
-print("Accuracy: %.2f%%" % (accuracy * 100.0))
 
 
 
