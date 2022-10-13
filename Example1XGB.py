@@ -33,22 +33,19 @@ y = y_encoded[['dataset_pd', 'dataset_snp']].copy()
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.8, random_state=42, stratify=y) #Splits data into training (81.694%) and testing (18.216%).
 
 #**XGB Dmatrix training model**
-d_train = xgb.DMatrix(X_train, y_train, silent=False)
-d_test = xgb.DMatrix(X_test, y_test, silent=False)
+d_train = xgb.DMatrix(X_train, y_train.values.argmax(axis=1), silent=False)
+d_test = xgb.DMatrix(X_test, y_test.values.argmax(axis=1), silent=False)
 
 param = {
     'booster': 'gbtree',
     'max_depth': 2,
     'learning_rate': 0.1,
-    'eta': 1,
-    'objective': 'binary:logistic',
-    'early_stopping_rounds': 10,
-    'verbose': True
+    'objective': 'binary:logistic'
     }
-param['eval_metric'] = ['rmse']
+param['eval_metric'] = ['auc']
 evallist = [(d_test, 'eval'), (d_train, 'train')]
 
-num_round=10
+num_round=15
 training = xgb.train(param, d_train, num_round, evallist)
 
  
