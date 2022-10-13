@@ -29,28 +29,27 @@ X = df.drop('dataset', axis=1).copy() #X is dataframe with data used to train an
 y_encoded = pd.get_dummies(df, columns=['dataset']) #y is df with mutations changing from object -> unint8 (integer)
 y = y_encoded[['dataset_pd', 'dataset_snp']].copy()
 
-print(X.shape)
-print(y.shape)
+#**Split data into training and test**
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.8, random_state=42, stratify=y) #Splits data into training (81.694%) and testing (18.216%).
 
 #**XGB Dmatrix training model**
-train = xgb.DMatrix(X.values, y.values)
-test = xgb.DMatrix(y.values)
-dmatrix = xgb.DMatrix(data = train, label = test, silent=True)
+d_train = xgb.DMatrix(X_train, y_train, silent=False)
+d_test = xgb.DMatrix(X_test, y_test, silent=False)
 
 param = {
+    'booster': 'gbtree',
     'max_depth': 2,
+    'learning_rate': 0.1,
     'eta': 1,
     'objective': 'binary:logistic',
+    'early_stopping_rounds': 10,
+    'verbose': True
     }
-param['nthread'] = 4
-param['eval_metrics'] = ['aucp', 'rmse']
+param['eval_metric'] = ['rmse']
+evallist = [(d_test, 'eval'), (d_train, 'train')]
 
-evallist = [(test, 'eval'), (train, 'train')]
-
-#**Split data into training and test**
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.81694, random_state=42, stratify=y) #Splits data into training (81.694%) and testing (18.216%).
 num_round=10
-training = xgb.train(param, dmatrix, num_round, evallist)
+training = xgb.train(param, d_train, num_round, evallist)
 
  
 
