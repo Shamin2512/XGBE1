@@ -16,7 +16,7 @@ from sklearn.model_selection import GridSearchCV #Cross validation to improve hy
 from sklearn.metrics import confusion_matrix #creates the confusion matrix - stats on how accurate the test set output is
 from sklearn.metrics import ConfusionMatrixDisplay #draws the confusion matrix
 
-xgb.set_config(verbosity=2)
+xgb.config_context(verbosity=2)
                
 #**Create, clean and convert the train.csv dataset to a dataframe**
 df = pd.read_csv('demo.csv') #Pandas creates data frame from the .csv mutation data
@@ -26,22 +26,23 @@ df.replace(' ', '_', regex=True, inplace=True) #Replace all blank spaces with un
 
 #**Encoding the categorical data for dataframe y**
 X = df.drop('dataset', axis=1).copy() #X is dataframe with data used to train and predict if SNP or PD 
-y_encoded = pd.get_dummies(df, columns=['dataset']) #y is df with mutations changing from object -> unint8 (integer)
-y = y_encoded[['dataset_pd', 'dataset_snp']].copy()
+y_encoded = pd.get_dummies(df, columns=['dataset'], prefix=['Mutation']) #y is df with mutations changing from object -> unint8 (integer)
+y = y_encoded['Mutation_pd'].copy() #datafram y only has one column of mutation data; binary 
 
 #**Split data into training and test**
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.8, random_state=42, stratify=y) #Splits data into training (81.694%) and testing (18.216%).
-
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.8, random_state=42, stratify=y) #Splits data into training and testing
 #**XGB Dmatrix training model**
-d_train = xgb.DMatrix(X_train, y_train.values.argmax(axis=1), silent=False)
-d_test = xgb.DMatrix(X_test, y_test.values.argmax(axis=1), silent=False)
+d_train = xgb.DMatrix(X_train, y_train, silent=False)
+d_test = xgb.DMatrix(X_test, y_test, silent=False)
 
 param = {
-    'booster': 'gbtree',
-    'colsample_bytree': 0.3,
+    'booster': 'gbtree', #non linear tree method
+    'colsample_bytree': 0.3, #subsamples when each tree is created
     'max_depth': 2,
     'learning_rate': 0.1,
-    'objective': 'binary:logistic'
+    'verbosity': 1, #outputs the evaluation of each tree
+    'objective': 'binary:logistic', #classifies the outcome as either 0 (SNP), or 1 (PD)
+    'validate_parameters': True
     }
 param['eval_metric'] = ['auc', 'aucpr', 'rmse']
 evallist = [(d_test, 'eval'), (d_train, 'train')]
@@ -49,8 +50,8 @@ evallist = [(d_test, 'eval'), (d_train, 'train')]
 num_round = 50
 bst = xgb.train(param, d_train, num_round, evallist, early_stopping_rounds = 10)
 
-
-dmatrix_train = xgb.DMatrix(X, y)
+#Cross validation paramaters
+dmatrix_val = xgb.DMatrix(X, y)
 params = {
     'objective': 'binary:hinge',
     'colsample_bytree': 0.3,
@@ -59,8 +60,8 @@ params = {
 }
 cross_val = xgb.cv(
     params=params,
-    dtrain=dmatrix_data, 
-    nfold=3,
+    dtrain=dmatrix_val, 
+    nfold=5,
     num_boost_round=50, 
     early_stopping_rounds=10, 
     metrics='error', 
