@@ -8,6 +8,7 @@ import xgboost as xgb #XGboost ML
 import matplotlib.pyplot as plt #graphing/plotting stuff
 from xgboost import XGBClassifier #SK learn API for XGB model building
 from xgboost import XGBRegressor #SK learn API for XGB regression
+from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split #Splits data frame into the training set and testing set
@@ -73,6 +74,7 @@ clf.fit(X_train, y_train)
 y_pred = clf.predict(X_test)
 ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
 print(confusion_matrix(y_test, y_pred))
+print(matthews_corrcoef(y_test, y_pred))
 
 
 
