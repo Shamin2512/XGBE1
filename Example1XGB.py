@@ -32,8 +32,8 @@ y = y_encoded['Mutation_pd'].copy() #datafram y only has one column of mutation 
 #**Split data into training and test**
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.8, random_state=42, stratify=y) #Splits data into training and testing
 #**XGB Dmatrix training model**
-d_train = xgb.DMatrix(X_train, y_train, silent=False)
-d_test = xgb.DMatrix(X_test, y_test, silent=False)
+d_train = xgb.DMatrix(X_train, y_train)
+d_test = xgb.DMatrix(X_test, y_test)
 
 param = {
     'booster': 'gbtree', #non linear tree method
@@ -41,14 +41,12 @@ param = {
     'max_depth': 2,
     'learning_rate': 0.1,
     'verbosity': 1, #outputs the evaluation of each tree
-    'objective': 'binary:logistic', #classifies the outcome as either 0 (SNP), or 1 (PD)
-    'validate_parameters': True
+    'objective': 'binary:logistic' #classifies the outcome as either 0 (SNP), or 1 (PD)
     }
-param['eval_metric'] = ['auc', 'aucpr', 'rmse']
-evallist = [(d_test, 'eval'), (d_train, 'train')]
-
+param['eval_metric'] = ['auc', 'aucpr']
+evals = [(d_test, 'eval'), (d_train, 'train')]
 num_round = 50
-bst = xgb.train(param, d_train, num_round, evallist, early_stopping_rounds = 10)
+xgb.train(param, d_train, num_round, evals)
 
 #Cross validation paramaters
 dmatrix_val = xgb.DMatrix(X, y)
@@ -56,7 +54,7 @@ params = {
     'objective': 'binary:hinge',
     'colsample_bytree': 0.3,
     'learning_rate': 0.1,
-    'max_depth': 5,
+    'max_depth': 5
 }
 cross_val = xgb.cv(
     params=params,
@@ -65,9 +63,16 @@ cross_val = xgb.cv(
     num_boost_round=50, 
     early_stopping_rounds=10, 
     metrics='error', 
-    as_pandas=True, 
+    as_pandas=True,
     seed=42)
 print(cross_val.head())
+
+#**Plot confusion matrix using the true and predicted values**
+clf = xgb.XGBClassifier(**param)
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
+ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
+print(confusion_matrix(y_test, y_pred))
 
 
 
