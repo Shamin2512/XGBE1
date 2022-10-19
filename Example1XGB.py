@@ -43,12 +43,12 @@ param = {
     'max_depth': 2,
     'learning_rate': 0.1,
     'verbosity': 1, #outputs the evaluation of each tree
-    'objective': 'binary:logistic' #classifies the outcome as either 0 (SNP), or 1 (PD)
+    'eval_metric': ['auc', 'aucpr'],
+    'objective': 'binary:logistic' #classifies the outcome as either 0 (SNP), or 1 (PD). Non multiclass
     }
-param['eval_metric'] = ['auc', 'aucpr']
-evals = [(d_test, 'eval'), (d_train, 'train')]
-num_round = 50
-xgb.train(param, d_train, num_round, evals)
+evals = [(d_test, 'Training'), (d_train, 'Testing')]
+num_round=50
+model = xgb.train(param, d_train, num_round, evals)
 
 #Cross validation paramaters
 dmatrix_val = xgb.DMatrix(X, y)
@@ -66,17 +66,24 @@ cross_val = xgb.cv(
     early_stopping_rounds=10, 
     metrics='error', 
     as_pandas=True,
-    seed=42)
-print(cross_val.head())
+    seed=42
+    )
 
 #**Plot confusion matrix using the true and predicted values**
-clf = xgb.XGBClassifier(**param)
-clf.fit(X_train, y_train)
-y_pred = clf.predict(X_test)
-ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
-print(confusion_matrix(y_test, y_pred))
-print(matthews_corrcoef(y_test, y_pred))
-print (f1_score(y_test, y_pred))
+#clf = xgb.XGBClassifier(**param)
+#clf.fit(X_train, y_train)
+#y_pred = clf.predict(X_test)
+#ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
+print(cross_val.head())
+
+y_pred = model.predict(d_test)
+print(y_pred)
+cm = confusion_matrix(Yclass, y_pred)
+
+
+print("Confusion Matrix:\n", cm)
+print("MCC:", matthews_corrcoef(y_test, y_pred))
+print("F1 Score:", f1_score(y_test, y_pred))
 
 
 
