@@ -4,7 +4,7 @@
 #**import XGBoost and other ML modules**
 import pandas as pd #import data for One-Hot Encoding
 import numpy as np #calc the mean and SD
-import xgboost as xgb #XGboost ML
+import xgboost as xgb #XGboost Learning API
 import matplotlib.pyplot as plt #graphing/plotting stuff
 from xgboost import XGBClassifier #SK learn API for XGB model building
 from xgboost import XGBRegressor #SK learn API for XGB regression
@@ -18,8 +18,10 @@ from sklearn.model_selection import GridSearchCV #Cross validation to improve hy
 from sklearn.metrics import confusion_matrix #creates the confusion matrix - stats on how accurate the test set output is
 from sklearn.metrics import ConfusionMatrixDisplay #draws the confusion matrix
 
-xgb.config_context(verbosity=2)
-               
+xgb.set_config(verbosity=2)
+config = xgb.get_config()
+print(config)
+          
 #**Create, clean and convert the train.csv dataset to a dataframe**
 df = pd.read_csv('demo.csv') #Pandas creates data frame from the .csv mutation data
 df.drop(['pdbcode:chain:resnum:mutation'],axis=1, inplace=True) #removes columns unrequired columns, replacing the variable 
@@ -29,34 +31,35 @@ df.replace(' ', '_', regex=True, inplace=True) #Replace all blank spaces with un
 #**Encoding the categorical data for dataframe y**
 X = df.drop('dataset', axis=1).copy() #X is dataframe with data used to train and predict if SNP or PD 
 y_encoded = pd.get_dummies(df, columns=['dataset'], prefix=['Mutation']) #y is df with mutations changing from object -> unint8 (integer)
-y = y_encoded['Mutation_pd'].copy() #datafram y only has one column of mutation data; binary 
+y = y_encoded['Mutation_pd'].copy().astype('int32') #datafram y only has one column of mutation data; binary
 
 #**Split data into training and test**
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.8, random_state=42, stratify=y) #Splits data into training and testing
+
 #**XGB Dmatrix training model**
 d_train = xgb.DMatrix(X_train, y_train)
 d_test = xgb.DMatrix(X_test, y_test)
 
-param = {
-    'booster': 'gbtree', #non linear tree method
-    'colsample_bytree': 0.3, #subsamples when each tree is created
-    'max_depth': 2,
-    'learning_rate': 0.1,
+param = { #Dictionary of parameters to initally train the model
+    'booster': 'gbtree', #non-linear, tree method (default)
     'verbosity': 1, #outputs the evaluation of each tree
+    'eta': 0.1, #Same as learning rate, shrinkage of each step when approaching the optimum value
+    'colsample_bytree': 0.8, #How much subsampling for each tree
+    'max_depth': 5, #Greater the depth, more prone to overfitting; tune from CV
     'eval_metric': ['auc', 'aucpr'],
-    'objective': 'binary:logistic' #classifies the outcome as either 0 (SNP), or 1 (PD). Non multiclass
+    'min_child_weight': 1,
+    'objective': 'binary:logistic' #classifies the outcome as either 0 (SNP), or 1 (PD). Non multiclass classification
     }
-evals = [(d_test, 'Training'), (d_train, 'Testing')]
-num_round=50
-model = xgb.train(param, d_train, num_round, evals)
+
+model = xgb.train(param, d_train, evals= [(d_test, 'eval'), (d_train, 'train')], num_boost_round=50, early_stopping_rounds=20)
 
 #Cross validation paramaters
 dmatrix_val = xgb.DMatrix(X, y)
 params = {
     'objective': 'binary:hinge',
     'colsample_bytree': 0.3,
-    'learning_rate': 0.1,
-    'max_depth': 5
+    'eta': 0.1,
+    'max_depth': 3
 }
 cross_val = xgb.cv(
     params=params,
@@ -68,22 +71,23 @@ cross_val = xgb.cv(
     as_pandas=True,
     seed=42
     )
+print(cross_val.head())
 
 #**Plot confusion matrix using the true and predicted values**
 #clf = xgb.XGBClassifier(**param)
 #clf.fit(X_train, y_train)
 #y_pred = clf.predict(X_test)
 #ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
-print(cross_val.head())
 
-y_pred = model.predict(d_test)
-print(y_pred)
-cm = confusion_matrix(Yclass, y_pred)
+y_predarray = model.predict(d_test) #No longer a pandas DF, is now a numpy array
+y_pred = pd.DataFrame(y_predarray)
+print(y_test)
+cm = ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
 
 
-print("Confusion Matrix:\n", cm)
-print("MCC:", matthews_corrcoef(y_test, y_pred))
-print("F1 Score:", f1_score(y_test, y_pred))
+#print("Confusion Matrix:\n", cm)
+#print("MCC:", matthews_corrcoef(y_test.astype(int), y_pred))
+#print("F1 Score:", f1_score(y_test.astype(int), y_pred))
 
 
 
