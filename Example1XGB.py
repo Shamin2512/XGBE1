@@ -37,8 +37,8 @@ y = y_encoded['Mutation_pd'].copy().astype('int32') #datafram y only has one col
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size = 0.8, random_state=42, stratify=y) #Splits data into training and testing
 
 #**XGB Dmatrix training model**
-d_train = xgb.DMatrix(X_train, y_train)
-d_test = xgb.DMatrix(X_test, y_test)
+d_train = xgb.DMatrix(X_train, label=y_train)
+d_test = xgb.DMatrix(X_test, label=y_test)
 
 param = { #Dictionary of parameters to initally train the model
     'booster': 'gbtree', #non-linear, tree method (default)
@@ -79,15 +79,12 @@ print(cross_val.head())
 #y_pred = clf.predict(X_test)
 #ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
 
-y_predarray = model.predict(d_test) #No longer a pandas DF, is now a numpy array
-y_pred = pd.DataFrame(y_predarray)
-print(y_test)
-cm = ConfusionMatrixDisplay.from_predictions(y_test, y_pred)
+y_pred = model.predict(d_test) #No longer a pandas DF, is now a numpy array as Dmatrix
+cm = confusion_matrix(y_test, y_pred > 0.5)
 
-
-#print("Confusion Matrix:\n", cm)
-#print("MCC:", matthews_corrcoef(y_test.astype(int), y_pred))
-#print("F1 Score:", f1_score(y_test.astype(int), y_pred))
+print("Confusion Matrix:\n", cm)
+print("MCC:\n", matthews_corrcoef(y_test.astype(int), y_pred>0.5))
+print("F1 Score:\n", f1_score(y_test.astype(int), y_pred>0.5))
 
 
 
